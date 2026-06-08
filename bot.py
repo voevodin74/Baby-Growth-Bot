@@ -347,12 +347,28 @@ async def child_info(
 
         return
 
+    growth_count = len(
+        [
+            e for e in user["events"]
+            if e.get("type") == "growth"
+        ]
+    )
+
+    milestone_count = len(
+        [
+            e for e in user["events"]
+            if e.get("type") == "milestone"
+        ]
+    )
+
     text = (
         f"👶 {user['child_name']}\n\n"
         f"📅 Дата рождения:\n"
         f"{format_date(user['birth_date'])}\n\n"
-        f"📈 Всего скачков:\n"
-        f"{len(user['events'])}"
+        f"🧠 Скачков развития: "
+        f"{growth_count}\n"
+        f"🎉 Поздравлений: "
+        f"{milestone_count}"
     )
 
     await message.answer(
@@ -420,8 +436,24 @@ async def next_events(
         "📅 Ближайшие события\n\n"
     )
 
-    for event in future_events[:2]:
+    for event in future_events[:5]:
 
+        #
+        # Поздравления
+        #
+        if event.get("type") == "milestone":
+
+            text += (
+                f"{event['title']}\n"
+                f"📆 {format_date(event['event_date'])}\n\n"
+                "━━━━━━━━━━━━\n\n"
+            )
+
+            continue
+
+        #
+        # Скачки развития
+        #
         template = templates[
             event["code"]
         ]
@@ -429,7 +461,8 @@ async def next_events(
         text += (
             f"🧠 {template['title']}\n"
             f"📆 {format_date(event['event_date'])}\n"
-            f"👶 Возраст: {format_week_range(template)}\n\n"
+            f"👶 Возраст: "
+            f"{format_week_range(template)}\n\n"
             f"{template['description']}\n\n"
         )
 
