@@ -361,6 +361,13 @@ async def child_info(
         ]
     )
 
+    vaccine_count = len(
+        [
+            e for e in user["events"]
+            if e.get("type") == "vaccine"
+        ]
+    )    
+
     text = (
         f"👶 {user['child_name']}\n\n"
         f"📅 Дата рождения:\n"
@@ -368,7 +375,9 @@ async def child_info(
         f"🧠 Скачков развития: "
         f"{growth_count}\n"
         f"🎉 Поздравлений: "
-        f"{milestone_count}"
+        f"{milestone_count}\n"
+        f"💉 Прививок: "
+        f"{vaccine_count}"
     )
 
     await message.answer(
@@ -450,6 +459,19 @@ async def next_events(
             )
 
             continue
+            
+        #
+        # Прививки
+        #
+        if event.get("type") == "vaccine":
+
+            text += (
+                f"💉 {event['title']}\n"
+                f"📆 {format_date(event['event_date'])}\n\n"
+                "━━━━━━━━━━━━\n\n"
+            )
+
+            continue    
 
         #
         # Скачки развития

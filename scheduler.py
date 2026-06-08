@@ -83,6 +83,17 @@ def build_milestone_message(
     )
 
 
+def build_vaccine_message(
+        event
+):
+
+    return (
+        "💉 Завтра плановая вакцинация\n\n"
+        f"{event['title']}\n\n"
+        f"{event['description']}"
+    )
+
+
 async def check_events(
         bot: Bot
 ):
@@ -156,6 +167,21 @@ async def check_events(
                     await bot.send_message(
                         user["telegram_id"],
                         build_milestone_message(
+                            event
+                        )
+                    )
+
+                #
+                # Прививки
+                #
+                elif (
+                    event.get("type")
+                    == "vaccine"
+                ):
+
+                    await bot.send_message(
+                        user["telegram_id"],
+                        build_vaccine_message(
                             event
                         )
                     )

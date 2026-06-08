@@ -11,12 +11,23 @@ from dateutil.relativedelta import (
 
 
 TEMPLATE_FILE = "growth_spurts.json"
+VACCINES_FILE = "vaccines_ru.json"
 
 
 def load_templates():
 
     with open(
         TEMPLATE_FILE,
+        encoding="utf-8"
+    ) as f:
+
+        return json.load(f)
+
+
+def load_vaccines():
+
+    with open(
+        VACCINES_FILE,
         encoding="utf-8"
     ) as f:
 
@@ -62,12 +73,64 @@ def generate_month_events(
                     event_date.isoformat(),
 
                 #
-                # Для поздравлений
-                # уведомление приходит
-                # в день события
+                # Поздравление
+                # приходит в день события
                 #
                 "date":
                     event_date.isoformat(),
+
+                "sent":
+                    False
+            }
+        )
+
+    return events
+
+
+def generate_vaccine_events(
+        birth
+):
+
+    vaccines = load_vaccines()
+
+    events = []
+
+    for vaccine in vaccines:
+
+        event_date = (
+            birth +
+            timedelta(
+                days=vaccine["offset_days"]
+            )
+        )
+
+        notify_date = (
+            event_date -
+            timedelta(days=1)
+        )
+
+        events.append(
+            {
+                "type": "vaccine",
+
+                "code":
+                    vaccine["code"],
+
+                "title":
+                    vaccine["title"],
+
+                "description":
+                    vaccine["description"],
+
+                "event_date":
+                    event_date.isoformat(),
+
+                #
+                # Напоминание
+                # за день до прививки
+                #
+                "date":
+                    notify_date.isoformat(),
 
                 "sent":
                     False
@@ -133,7 +196,7 @@ def generate_events(
         )
 
     #
-    # Ежемесячные события
+    # Ежемесячные поздравления
     #
     events.extend(
         generate_month_events(
@@ -142,7 +205,16 @@ def generate_events(
     )
 
     #
-    # Сортировка по дате события
+    # Прививки
+    #
+    events.extend(
+        generate_vaccine_events(
+            birth
+        )
+    )
+
+    #
+    # Сортировка всех событий
     #
     return sorted(
         events,
