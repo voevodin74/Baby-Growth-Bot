@@ -74,7 +74,7 @@ MAIN_MENU = ReplyKeyboardMarkup(
         ],
         [
             KeyboardButton(
-                text="📅 Ближайшие скачки"
+                text="📅 Ближайшие события"
             )
         ],
         [
@@ -343,18 +343,30 @@ async def child_info(
 
 
 @dp.message(
-    F.text == "📅 Ближайшие скачки"
+    F.text == "📅 Ближайшие события"
 )
 async def next_events(
         message: Message
 ):
+
+    from generator import load_templates
 
     user = load_user(
         message.from_user.id
     )
 
     if not user:
+
+        await message.answer(
+            "Сначала выполните /start"
+        )
+
         return
+
+    templates = {
+        item["code"]: item
+        for item in load_templates()
+    }
 
     today = datetime.now().date()
 
@@ -381,26 +393,71 @@ async def next_events(
     if not future_events:
 
         await message.answer(
-            "Предстоящих скачков нет."
+            "Предстоящих событий нет."
         )
 
         return
 
     text = (
-        "📅 Ближайшие скачки\n\n"
+        "📅 Ближайшие события\n\n"
     )
 
-    for event in future_events[:5]:
+    for event in future_events[:2]:
+
+        template = templates[
+            event["code"]
+        ]
 
         text += (
-            f"• {event['title']}\n"
-            f"{format_date(event['event_date'])}\n\n"
+            f"🧠 {template['title']}\n"
+            f"📆 {format_date(event['event_date'])}\n"
+            f"👶 {template['week']} недель\n\n"
+            f"{template['description']}\n\n"
+        )
+
+        text += (
+            "Что вы можете заметить:\n"
+        )
+
+        for sign in template[
+            "possible_signs"
+        ]:
+
+            text += (
+                f"• {sign}\n"
+            )
+
+        text += (
+            "\nНовые навыки:\n"
+        )
+
+        for skill in template[
+            "new_skills"
+        ]:
+
+            text += (
+                f"• {skill}\n"
+            )
+
+        text += (
+            "\nСоветы:\n"
+        )
+
+        for tip in template[
+            "tips"
+        ]:
+
+            text += (
+                f"• {tip}\n"
+            )
+
+        text += (
+            "\n━━━━━━━━━━━━\n\n"
         )
 
     await message.answer(
         text
     )
-
 
 @dp.message(
     F.text == "🔄 Изменить дату рождения"
@@ -489,14 +546,14 @@ async def about(
         message: Message
 ):
 
-	await message.answer(
-	    "👶 Бот помогает родителям "
-	    "отслеживать скачки развития "
-	    "ребенка и заранее получать "
-	    "уведомления о предстоящих "
-	    "этапах развития.\n\n"
-	    "@voevodin74"
-	)
+    await message.answer(
+        "👶 Бот помогает родителям "
+        "отслеживать скачки развития "
+        "ребенка и заранее получать "
+        "уведомления о предстоящих "
+        "этапах развития.\n\n"
+        "Автор: @voevodin74"
+    )
 
 async def scheduled_check():
 
