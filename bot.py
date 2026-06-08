@@ -125,6 +125,24 @@ def format_date(
     )
 
 
+def format_week_range(
+        template: dict
+):
+
+    start_week = (
+        template["offset_days"] // 7
+    )
+
+    end_week = (
+        template["offset_days"] +
+        template["duration_days"]
+    ) // 7
+
+    return (
+        f"{start_week}–{end_week} нед."
+    )
+
+
 @dp.message(CommandStart())
 async def start(
         message: Message,
@@ -411,7 +429,7 @@ async def next_events(
         text += (
             f"🧠 {template['title']}\n"
             f"📆 {format_date(event['event_date'])}\n"
-            f"👶 {template['week']} недель\n\n"
+            f"👶 Возраст: {format_week_range(template)}\n\n"
             f"{template['description']}\n\n"
         )
 
