@@ -15,7 +15,9 @@ def load_templates():
         return json.load(f)
 
 
-def generate_events(birth_date: str):
+def generate_events(
+        birth_date: str
+):
 
     birth = datetime.strptime(
         birth_date,
@@ -35,11 +37,19 @@ def generate_events(birth_date: str):
             )
         )
 
+        notify_date = (
+            event_date -
+            timedelta(days=1)
+        )
+
         events.append(
             {
                 "code": template["code"],
                 "title": template["title"],
-                "date": event_date.isoformat(),
+                "event_date":
+                    event_date.isoformat(),
+                "date":
+                    notify_date.isoformat(),
                 "sent": False
             }
         )

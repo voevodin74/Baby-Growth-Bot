@@ -1,4 +1,5 @@
 import os
+import asyncio
 
 from datetime import datetime
 
@@ -12,6 +13,7 @@ from aiogram.filters import CommandStart
 
 from aiogram.types import (
     Message,
+    CallbackQuery,
     ReplyKeyboardMarkup,
     KeyboardButton,
     ReplyKeyboardRemove
@@ -41,6 +43,11 @@ from scheduler import (
     check_events
 )
 
+from calendar_widget import (
+    create_calendar
+)
+
+
 load_dotenv()
 
 TOKEN = os.getenv("BOT_TOKEN")
@@ -56,7 +63,6 @@ scheduler = AsyncIOScheduler()
 
 class Registration(StatesGroup):
     child_name = State()
-    birth_date = State()
 
 
 MAIN_MENU = ReplyKeyboardMarkup(
@@ -69,6 +75,11 @@ MAIN_MENU = ReplyKeyboardMarkup(
         [
             KeyboardButton(
                 text="📅 Ближайшие скачки"
+            )
+        ],
+        [
+            KeyboardButton(
+                text="🔄 Изменить дату рождения"
             )
         ],
         [
@@ -102,6 +113,18 @@ DELETE_MENU = ReplyKeyboardMarkup(
 )
 
 
+def format_date(
+        date_string: str
+):
+
+    return datetime.strptime(
+        date_string,
+        "%Y-%m-%d"
+    ).strftime(
+        "%d.%m.%Y"
+    )
+
+
 @dp.message(CommandStart())
 async def start(
         message: Message,
@@ -113,7 +136,7 @@ async def start(
     ):
 
         await message.answer(
-            "Ребенок уже зарегистрирован 👶",
+            "👶 Ребенок уже зарегистрирован",
             reply_markup=MAIN_MENU
         )
 
@@ -143,57 +166,128 @@ async def child_name(
     )
 
     await message.answer(
-        "Введите дату рождения ребенка.\n\n"
-        "Формат:\n"
-        "2024-01-15"
-    )
-
-    await state.set_state(
-        Registration.birth_date
+        "📅 Выберите дату рождения:",
+        reply_markup=create_calendar()
     )
 
 
-@dp.message(
-    Registration.birth_date
+@dp.callback_query(
+    F.data == "ignore"
 )
-async def birth_date(
-        message: Message,
+async def ignore_callback(
+        callback: CallbackQuery
+):
+    await callback.answer()
+
+
+@dp.callback_query(
+    F.data.startswith("prev:")
+)
+async def prev_month(
+        callback: CallbackQuery
+):
+
+    _, year, month = (
+        callback.data.split(":")
+    )
+
+    year = int(year)
+    month = int(month)
+
+    month -= 1
+
+    if month == 0:
+        month = 12
+        year -= 1
+
+    await callback.message.edit_reply_markup(
+        reply_markup=create_calendar(
+            year,
+            month
+        )
+    )
+
+    await callback.answer()
+
+
+@dp.callback_query(
+    F.data.startswith("next:")
+)
+async def next_month(
+        callback: CallbackQuery
+):
+
+    _, year, month = (
+        callback.data.split(":")
+    )
+
+    year = int(year)
+    month = int(month)
+
+    month += 1
+
+    if month == 13:
+        month = 1
+        year += 1
+
+    await callback.message.edit_reply_markup(
+        reply_markup=create_calendar(
+            year,
+            month
+        )
+    )
+
+    await callback.answer()
+
+
+@dp.callback_query(
+    F.data.startswith("day:")
+)
+async def select_day(
+        callback: CallbackQuery,
         state: FSMContext
 ):
 
-    try:
+    _, year, month, day = (
+        callback.data.split(":")
+    )
 
-        datetime.strptime(
-            message.text,
-            "%Y-%m-%d"
-        )
-
-    except ValueError:
-
-        await message.answer(
-            "Неверный формат даты.\n\n"
-            "Пример:\n"
-            "2024-01-15"
-        )
-
-        return
+    birth_date = (
+        f"{year}-"
+        f"{int(month):02d}-"
+        f"{int(day):02d}"
+    )
 
     data = await state.get_data()
 
+    child_name = data.get(
+        "child_name"
+    )
+
+    if not child_name:
+
+        user = load_user(
+            callback.from_user.id
+        )
+
+        child_name = (
+            user["child_name"]
+        )
+
     events = generate_events(
-        message.text
+        birth_date
     )
 
     save_user(
         {
             "telegram_id":
-                message.from_user.id,
+                callback.from_user.id,
 
             "child_name":
-                data["child_name"],
+                child_name,
 
             "birth_date":
-                message.text,
+                birth_date,
 
             "events":
                 events
@@ -202,12 +296,18 @@ async def birth_date(
 
     await state.clear()
 
-    await message.answer(
-        "✅ Ребенок успешно добавлен\n\n"
-        "Теперь я буду напоминать "
-        "о предстоящих скачках развития.",
+    await callback.message.edit_text(
+        "✅ Данные сохранены"
+    )
+
+    await callback.message.answer(
+        f"👶 {child_name}\n\n"
+        f"📅 Дата рождения:\n"
+        f"{format_date(birth_date)}",
         reply_markup=MAIN_MENU
     )
+
+    await callback.answer()
 
 
 @dp.message(
@@ -232,12 +332,14 @@ async def child_info(
     text = (
         f"👶 {user['child_name']}\n\n"
         f"📅 Дата рождения:\n"
-        f"{user['birth_date']}\n\n"
-        f"📈 Скачков в календаре:\n"
+        f"{format_date(user['birth_date'])}\n\n"
+        f"📈 Всего скачков:\n"
         f"{len(user['events'])}"
     )
 
-    await message.answer(text)
+    await message.answer(
+        text
+    )
 
 
 @dp.message(
@@ -252,13 +354,37 @@ async def next_events(
     )
 
     if not user:
-
         return
 
-    future_events = sorted(
-        user["events"],
-        key=lambda x: x["date"]
+    today = datetime.now().date()
+
+    future_events = []
+
+    for event in user["events"]:
+
+        event_date = datetime.strptime(
+            event["event_date"],
+            "%Y-%m-%d"
+        ).date()
+
+        if event_date >= today:
+
+            future_events.append(
+                event
+            )
+
+    future_events.sort(
+        key=lambda x:
+        x["event_date"]
     )
+
+    if not future_events:
+
+        await message.answer(
+            "Предстоящих скачков нет."
+        )
+
+        return
 
     text = (
         "📅 Ближайшие скачки\n\n"
@@ -268,10 +394,39 @@ async def next_events(
 
         text += (
             f"• {event['title']}\n"
-            f"{event['date']}\n\n"
+            f"{format_date(event['event_date'])}\n\n"
         )
 
-    await message.answer(text)
+    await message.answer(
+        text
+    )
+
+
+@dp.message(
+    F.text == "🔄 Изменить дату рождения"
+)
+async def change_birth_date(
+        message: Message,
+        state: FSMContext
+):
+
+    user = load_user(
+        message.from_user.id
+    )
+
+    if not user:
+        return
+
+    await state.update_data(
+        child_name=user[
+            "child_name"
+        ]
+    )
+
+    await message.answer(
+        "📅 Выберите новую дату рождения:",
+        reply_markup=create_calendar()
+    )
 
 
 @dp.message(
@@ -286,13 +441,11 @@ async def delete_confirm(
     )
 
     if not user:
-
         return
 
     await message.answer(
         "⚠️ Вы уверены?\n\n"
-        "Все данные ребенка "
-        "будут удалены.",
+        "Все данные будут удалены.",
         reply_markup=DELETE_MENU
     )
 
@@ -309,9 +462,9 @@ async def delete_yes(
     )
 
     await message.answer(
-        "✅ Данные удалены.\n\n"
-        "Для повторной регистрации "
-        "используйте /start",
+        "✅ Данные удалены\n\n"
+        "Используйте /start "
+        "для новой регистрации.",
         reply_markup=ReplyKeyboardRemove()
     )
 
@@ -337,12 +490,12 @@ async def about(
 ):
 
     await message.answer(
-        "👶 Бот помогает отслеживать "
-        "скачки развития ребенка.\n\n"
-        "После регистрации вы будете "
-        "получать автоматические "
-        "уведомления о приближении "
-        "важных этапов развития."
+        "👶 Baby Growth Bot\n\n"
+        "Бот помогает родителям "
+        "отслеживать скачки развития "
+        "ребенка и заранее получать "
+        "уведомления о предстоящих "
+        "этапах развития."
     )
 
 
@@ -374,8 +527,6 @@ async def main():
 
 
 if __name__ == "__main__":
-
-    import asyncio
 
     asyncio.run(
         main()

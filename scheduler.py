@@ -7,14 +7,19 @@ from aiogram import Bot
 from storage import USERS_DIR
 
 
-def build_message(template):
+def build_message(
+        template
+):
 
     text = (
-        f"👶 {template['title']}\n\n"
+        "👶 Завтра ожидается скачок развития\n\n"
+        f"📈 {template['title']}\n\n"
         f"{template['description']}\n\n"
     )
 
-    text += "Что вы можете заметить:\n"
+    text += (
+        "Что вы можете заметить:\n"
+    )
 
     for item in template[
         "possible_signs"
@@ -22,7 +27,9 @@ def build_message(template):
 
         text += f"• {item}\n"
 
-    text += "\nНовые навыки:\n"
+    text += (
+        "\nВозможные новые навыки:\n"
+    )
 
     for item in template[
         "new_skills"
@@ -42,7 +49,7 @@ def build_message(template):
 
 
 async def check_events(
-    bot: Bot
+        bot: Bot
 ):
 
     today = (
