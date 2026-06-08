@@ -7,7 +7,7 @@ from aiogram import Bot
 from storage import USERS_DIR
 
 
-def build_message(
+def build_growth_message(
         template
 ):
 
@@ -46,6 +46,41 @@ def build_message(
         text += f"• {item}\n"
 
     return text
+
+
+def build_milestone_message(
+        event
+):
+
+    month = (
+        event["code"]
+        .replace(
+            "month_",
+            ""
+        )
+    )
+
+    if month == "12":
+
+        return (
+            "🎂 Сегодня первый день рождения!\n\n"
+            "Поздравляем вашу семью с этим "
+            "важным событием ❤️\n\n"
+            "Целый год удивительных открытий, "
+            "роста и счастливых моментов уже "
+            "позади. Пусть впереди будет ещё "
+            "больше радости и новых достижений."
+        )
+
+    return (
+        f"🎉 Сегодня малышу исполнился "
+        f"{month} месяц!\n\n"
+        "Каждый месяц приносит новые "
+        "открытия, навыки и счастливые "
+        "моменты.\n\n"
+        "Поздравляем вашу семью "
+        "с этой маленькой, но важной датой ❤️"
+    )
 
 
 async def check_events(
@@ -89,18 +124,41 @@ async def check_events(
                 and not event["sent"]
             ):
 
-                template = (
-                    template_map[
-                        event["code"]
-                    ]
-                )
+                #
+                # Скачки развития
+                #
+                if (
+                    event.get("type")
+                    == "growth"
+                ):
 
-                await bot.send_message(
-                    user["telegram_id"],
-                    build_message(
-                        template
+                    template = (
+                        template_map[
+                            event["code"]
+                        ]
                     )
-                )
+
+                    await bot.send_message(
+                        user["telegram_id"],
+                        build_growth_message(
+                            template
+                        )
+                    )
+
+                #
+                # Ежемесячные поздравления
+                #
+                elif (
+                    event.get("type")
+                    == "milestone"
+                ):
+
+                    await bot.send_message(
+                        user["telegram_id"],
+                        build_milestone_message(
+                            event
+                        )
+                    )
 
                 event["sent"] = True
 
