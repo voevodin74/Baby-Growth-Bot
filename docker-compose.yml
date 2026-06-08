@@ -1,0 +1,16 @@
+services:
+
+  growth_bot:
+
+    build: .
+
+    container_name: growth_bot
+
+    restart: unless-stopped
+
+    env_file:
+      - .env
+
+    volumes:
+      - ./users:/app/users
+      - ./growth_spurts.json:/app/growth_spurts.json
