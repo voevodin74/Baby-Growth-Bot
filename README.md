@@ -29,7 +29,7 @@ Telegram-бот для родителей, который на основе да
 ```bash
 git clone https://github.com/voevodin74/baby-growth-bot.git
 
-cd baby-growth-bot
+cd /opt/baby-growth-bot
 ```
 
 ### Создание файла .env
