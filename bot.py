@@ -363,11 +363,15 @@ async def child_info(
     )
 
     vaccine_count = len(
-        [
-            e for e in user["events"]
+        {
+            (
+                e["code"],
+                e["event_date"]
+            )
+            for e in user["events"]
             if e.get("type") == "vaccine"
-        ]
-    )    
+        }
+    )
 
     text = (
         f"👶 {user['child_name']}\n\n"
@@ -433,6 +437,27 @@ async def next_events(
         key=lambda x:
         x["event_date"]
     )
+
+    unique_events = []
+    seen_vaccines = set()
+
+    for event in future_events:
+
+        if event.get("type") == "vaccine":
+
+            key = (
+                event["code"],
+                event["event_date"]
+            )
+
+            if key in seen_vaccines:
+                continue
+
+            seen_vaccines.add(key)
+
+        unique_events.append(event)
+
+    future_events = unique_events
 
     if not future_events:
 
