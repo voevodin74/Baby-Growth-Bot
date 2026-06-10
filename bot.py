@@ -2,6 +2,7 @@ import os
 import asyncio
 
 from datetime import datetime
+from zoneinfo import ZoneInfo
 
 from dotenv import load_dotenv
 
@@ -625,7 +626,7 @@ async def about(
         "ребенка и заранее получать "
         "уведомления о предстоящих "
         "этапах развития.\n\n"
-        "Автор: @voevodin74"
+        "@voevodin74"
     )
 
 async def scheduled_check():
@@ -639,8 +640,10 @@ async def on_startup():
 
     scheduler.add_job(
         scheduled_check,
-        "interval",
-        hours=1
+        "cron",
+        hour=10,
+        minute=0,
+        timezone=ZoneInfo("Europe/Moscow")
     )
 
     scheduler.start()
@@ -660,3 +663,4 @@ if __name__ == "__main__":
     asyncio.run(
         main()
     )
+

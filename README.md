@@ -128,6 +128,7 @@ baby-growth-bot/
 ├── calendar_widget.py
 │
 ├── growth_spurts.json
+├── vaccines_ru.json
 │
 ├── users/
 │

@@ -83,14 +83,56 @@ def build_milestone_message(
     )
 
 
+
 def build_vaccine_message(
         event
 ):
 
+    event_date = (
+        event["event_date"]
+        .replace("-", ".")
+    )
+
+    if (
+        event.get("notify_type")
+        == "week"
+    ):
+
+        return (
+            "💉 Через неделю плановая вакцинация\n\n"
+
+            f"📅 {event_date}\n\n"
+
+            "Согласно календарю "
+            "профилактических прививок "
+            "наступает срок вакцинации:\n\n"
+
+            f"{event['title']}\n\n"
+
+            f"{event['description']}\n\n"
+
+            "Рекомендуется заранее "
+            "записаться к педиатру "
+            "и убедиться в отсутствии "
+            "противопоказаний."
+        )
+
     return (
         "💉 Завтра плановая вакцинация\n\n"
+
+        f"📅 {event_date}\n\n"
+
+        "Согласно календарю "
+        "профилактических прививок "
+        "необходимо выполнить:\n\n"
+
         f"{event['title']}\n\n"
-        f"{event['description']}"
+
+        f"{event['description']}\n\n"
+
+        "Подготовьте документы "
+        "и уточните время посещения "
+        "поликлиники."
     )
 
 
@@ -204,3 +246,4 @@ async def check_events(
                     ensure_ascii=False,
                     indent=2
                 )
+

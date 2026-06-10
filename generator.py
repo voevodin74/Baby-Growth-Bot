@@ -87,6 +87,7 @@ def generate_month_events(
     return events
 
 
+
 def generate_vaccine_events(
         birth
 ):
@@ -104,41 +105,39 @@ def generate_vaccine_events(
             )
         )
 
-        notify_date = (
-            event_date -
-            timedelta(days=1)
+        events.append(
+            {
+                "type": "vaccine",
+                "notify_type": "week",
+                "code": vaccine["code"],
+                "title": vaccine["title"],
+                "description": vaccine["description"],
+                "event_date": event_date.isoformat(),
+                "date": (
+                    event_date -
+                    timedelta(days=7)
+                ).isoformat(),
+                "sent": False
+            }
         )
 
         events.append(
             {
                 "type": "vaccine",
-
-                "code":
-                    vaccine["code"],
-
-                "title":
-                    vaccine["title"],
-
-                "description":
-                    vaccine["description"],
-
-                "event_date":
-                    event_date.isoformat(),
-
-                #
-                # Напоминание
-                # за день до прививки
-                #
-                "date":
-                    notify_date.isoformat(),
-
-                "sent":
-                    False
+                "notify_type": "day",
+                "code": vaccine["code"],
+                "title": vaccine["title"],
+                "description": vaccine["description"],
+                "event_date": event_date.isoformat(),
+                "date": (
+                    event_date -
+                    timedelta(days=1)
+                ).isoformat(),
+                "sent": False
             }
         )
 
     return events
-
 
 def generate_events(
         birth_date: str
@@ -221,3 +220,4 @@ def generate_events(
         key=lambda x:
         x["event_date"]
     )
+
