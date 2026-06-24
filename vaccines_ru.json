@@ -21,6 +21,30 @@
   },
 
   {
+    "code": "rotavirus_1",
+    "offset_days": 60,
+    "title": "Ротавирусная инфекция (V1)",
+    "description": "Первая вакцинация против ротавирусной инфекции.",
+    "recommended": true
+  },
+  
+  {
+    "code": "rotavirus_2",
+    "offset_days": 135,
+    "title": "Ротавирусная инфекция (V2)",
+    "description": "Вторая вакцинация против ротавирусной инфекции.",
+    "recommended": true
+  },
+  
+  {
+    "code": "rotavirus_3",
+    "offset_days": 180,
+    "title": "Ротавирусная инфекция (V3)",
+    "description": "Третья вакцинация против ротавирусной инфекции.",
+    "recommended": true
+  },
+
+  {
     "code": "dtap_1",
     "offset_days": 90,
     "title": "Коклюш, дифтерия, столбняк (V1)",
@@ -96,11 +120,35 @@
     "title": "Гемофильная инфекция (V3)",
     "description": "Третья вакцинация против гемофильной инфекции."
   },
+  
+  {
+    "code": "meningococcal_1",
+    "offset_days": 270,
+    "title": "Менингококковая инфекция",
+    "description": "Рекомендуемая вакцинация против менингококковой инфекции.",
+    "recommended": true
+  },
 
   {
     "code": "mmr_1",
     "offset_days": 365,
     "title": "Корь, краснуха, паротит",
     "description": "Первая вакцинация КПК."
+  },
+  
+  {
+    "code": "varicella_1",
+    "offset_days": 365,
+    "title": "Ветряная оспа (V1)",
+    "description": "Первая вакцинация против ветряной оспы.",
+    "recommended": true
+  },
+  
+  {
+    "code": "varicella_2",
+    "offset_days": 455,
+    "title": "Ветряная оспа (V2)",
+    "description": "Вторая вакцинация против ветряной оспы.",
+    "recommended": true
   }
 ]

@@ -6,6 +6,8 @@ from aiogram import Bot
 
 from storage import USERS_DIR
 
+from generator import generate_events
+
 
 def build_growth_message(
         template
@@ -247,3 +249,64 @@ async def check_events(
                     indent=2
                 )
 
+
+async def refresh_events():
+
+    for file in USERS_DIR.glob("*.json"):
+
+        with open(
+            file,
+            encoding="utf-8"
+        ) as f:
+
+            user = json.load(f)
+
+        #
+        # Запоминаем уже отправленные события
+        #
+        sent_map = {
+            (
+                event["type"],
+                event["code"],
+                event["date"]
+            ): event["sent"]
+            for event in user["events"]
+        }
+
+        #
+        # Полностью пересчитываем календарь
+        #
+        new_events = generate_events(
+            user["birth_date"]
+        )
+
+        #
+        # Возвращаем статус отправки
+        #
+        for event in new_events:
+
+            key = (
+                event["type"],
+                event["code"],
+                event["date"]
+            )
+
+            event["sent"] = sent_map.get(
+                key,
+                False
+            )
+
+        user["events"] = new_events
+
+        with open(
+            file,
+            "w",
+            encoding="utf-8"
+        ) as f:
+
+            json.dump(
+                user,
+                f,
+                ensure_ascii=False,
+                indent=2
+            )

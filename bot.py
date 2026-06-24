@@ -16,7 +16,10 @@ from apscheduler.schedulers.asyncio import (
     AsyncIOScheduler
 )
 
-from scheduler import check_events
+from scheduler import (
+    check_events,
+    refresh_events
+)
 
 from handlers.menu import (
     router as menu_router
@@ -97,9 +100,29 @@ async def scheduled_check():
         bot
     )
 
+async def scheduled_refresh():
+
+    await refresh_events()    
+
 
 async def on_startup():
 
+    #
+    # Обновление календарей
+    #
+    scheduler.add_job(
+        scheduled_refresh,
+        "cron",
+        hour=9,
+        minute=0,
+        timezone=ZoneInfo(
+            "Europe/Moscow"
+        )
+    )
+
+    #
+    # Рассылка уведомлений
+    #
     scheduler.add_job(
         scheduled_check,
         "cron",
