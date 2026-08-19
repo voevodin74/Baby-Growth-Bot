@@ -1,6 +1,7 @@
 # Baby Growth Bot
 
 Telegram-бот для родителей, который на основе даты рождения ребенка формирует персональный календарь скачков развития и присылает уведомления о предстоящих этапах роста и развития.
+🤖 [@baby_growth_bot](https://t.me/baby_growth_bot)
 
 ## Возможности
 
@@ -27,9 +28,9 @@ Telegram-бот для родителей, который на основе да
 ### Клонирование репозитория
 
 ```bash
-git clone https://github.com/voevodin74/baby-growth-bot.git
+git clone https://github.com/voevodin74/Baby-Growth-Bot.git
 
-cd /opt/baby-growth-bot
+cd /opt/Baby-Growth-Bot
 ```
 
 ### Создание файла .env
@@ -137,7 +138,7 @@ docker compose logs -f
 ## Структура проекта
 
 ```text
-baby-growth-bot/
+Baby-Growth-Bot/
 
 ├── bot.py
 │
